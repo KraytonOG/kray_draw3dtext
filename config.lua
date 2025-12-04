@@ -6,6 +6,7 @@ Config.DefaultInteractDistance = 2.5
 Config.DefaultFont = 4
 Config.DefaultItemSpacing = 0.12
 Config.DefaultCategorySpacing = 0.15
+Config.MaxItemsPerColumn = 10
 
 -- Available fonts:
 -- 0 = Chalet London (thin)
@@ -32,9 +33,10 @@ Config.Menus = {
         columnSpacing = 1.0,
         itemSpacing = 0.12,
         categorySpacing = 0.15,
+        maxItemsPerColumn = 10, -- Override global setting per menu if needed
         -- Optional interaction
         interaction = {
-            enabled = true,
+            enabled = false,
             distance = 2.5,
             prompt = "[E] View Full Menu",
             key = 38, -- E key (see key list below)
@@ -86,6 +88,83 @@ Config.Menus = {
             }
         }
     },
+
+    -- Pops Diner
+    {
+        name = "Pop's Diner",
+        coords = vector3(1588.68, 6456.15, 24.91),
+        rotation = 60.0, -- Rotation in degrees (0 = default, 90 = rotated right, etc.)
+        displayDistance = 10.0,
+        font = 4,
+        header = {
+            text = "POPS DINER MENU",
+            scale = 2.0,
+            color = {255, 182, 193, 255},
+            offsetZ = 1.5, -- Height above coords
+        },
+        columnSpacing = 0.6,
+        itemSpacing = 0.12,
+        categorySpacing = 0.15,
+        maxItemsPerColumn = 8, -- Food category will wrap after 8 items
+        -- Optional interaction
+        interaction = {
+            enabled = false,
+            distance = 2.5,
+            prompt = "[E] View Full Menu",
+            key = 38, -- E key (see key list below)
+            event = "popsdiner:openMenu", -- Event to trigger (client or server)
+            eventType = "client", -- "client" or "server"
+        },
+        categories = {
+            {
+                name = "FOOD",
+                color = {255, 218, 185, 255},
+                items = {
+                    {name = "Bacon & Eggs", price = "$300"},
+                    {name = "Sausage & Eggs", price = "$500"},
+                    {name = "Bacon & Toast", price = "$500"},
+                    {name = "BLT Sandwich", price = "$300"},
+                    {name = "Ham Sandwich", price = "$500"},
+                    {name = "Cheese Sandwich", price = "$350"},
+                    {name = "Ham & Cheese Sandwich", price = "$200"},
+                    {name = "Tuna Sandwich", price = "$200"},
+                    {name = "Veggie Wrap", price = "$200"},
+                    {name = "Grilled Wrap", price = "$200"},
+                    {name = "Ranch Wrap", price = "$200"},
+                    {name = "Cheese Burger", price = "$200"},
+                    {name = "Steak Burger", price = "$200"},
+                    {name = "Hamburger", price = "$200"},
+                    {name = "Crisps", price = "$200"},
+                }
+            },
+            {
+                name = "DRINKS",
+                color = {173, 216, 230, 255},
+                items = {
+                    {name = "Coffee", price = "$300"},
+                    {name = "Ecola", price = "$500"},
+                    {name = "Ecola Light", price = "$500"},
+                    {name = "Sprunk", price = "$500"},
+                    {name = "Sprunk Light", price = "$500"},
+                }
+            },
+
+            {
+                name = "DESSERTS",
+                color = {255, 192, 203, 255},
+                items = {
+                    {name = "Carrot Cake", price = "$300"},
+                    {name = "Cheese Cake", price = "$300"},
+                    {name = "Jelly", price = "$400"},
+                    {name = "Chocolate Pudding", price = "$400"},
+                    {name = "Donut", price = "$400"},
+                    {name = "Ice Cream", price = "$400"},
+                    {name = "Chocolate Bar", price = "$400"},
+                }
+            }
+        }
+    },
+
 
     -- EXAMPLE: ROTATED MENU (facing different direction)
     -- {
