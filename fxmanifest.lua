@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'KraytonOG'
 description 'Configurable 3D Menu/Text Display System'
-version '1.0.2'
+version '1.0.4'
 
 shared_scripts {
     'config.lua'
