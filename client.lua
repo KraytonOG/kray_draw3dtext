@@ -1,5 +1,3 @@
--- Configurable 3D Menu/Text Display System
-
 -- Draw 3D Text Function with rotation and font support
 function Draw3DText(x, y, z, text, scale, r, g, b, a, font)
     local onScreen, _x, _y = World3dToScreen2d(x, y, z)
@@ -67,7 +65,46 @@ function HandleInteraction(interaction, name)
     end
 end
 
--- Render a single menu
+-- Split category items into columns based on maxItemsPerColumn
+function SplitCategoryIntoColumns(category, maxItemsPerColumn)
+    local columns = {}
+    local items = category.items
+    local totalItems = #items
+    
+    if totalItems <= maxItemsPerColumn then
+        -- No wrapping needed
+        table.insert(columns, {
+            name = category.name,
+            color = category.color,
+            items = items,
+            showHeader = true
+        })
+    else
+        -- Split into multiple columns
+        local numColumns = math.ceil(totalItems / maxItemsPerColumn)
+        
+        for col = 1, numColumns do
+            local startIdx = ((col - 1) * maxItemsPerColumn) + 1
+            local endIdx = math.min(col * maxItemsPerColumn, totalItems)
+            local columnItems = {}
+            
+            for i = startIdx, endIdx do
+                table.insert(columnItems, items[i])
+            end
+            
+            table.insert(columns, {
+                name = category.name,
+                color = category.color,
+                items = columnItems,
+                showHeader = true -- Show header on all columns
+            })
+        end
+    end
+    
+    return columns
+end
+
+-- Render a single menu with column wrapping support
 function RenderMenu(menu, playerCoords)
     local coords = menu.coords
     local header = menu.header
@@ -78,35 +115,53 @@ function RenderMenu(menu, playerCoords)
     local itemSpacing = menu.itemSpacing or Config.DefaultItemSpacing
     local categorySpacing = menu.categorySpacing or Config.DefaultCategorySpacing
     local headerOffsetZ = header.offsetZ or 1.5
+    local maxItemsPerColumn = menu.maxItemsPerColumn or Config.MaxItemsPerColumn or 10
     
     -- Draw header
     Draw3DText(coords.x, coords.y, coords.z + headerOffsetZ, header.text, header.scale, 
         header.color[1], header.color[2], header.color[3], header.color[4], font)
     
-    -- Draw categories if they exist
+    -- Process categories with column wrapping
     if categories and #categories > 0 then
-        local numCategories = #categories
-        local startOffset = -((numCategories - 1) / 2) * columnSpacing
+        -- Calculate total columns needed
+        local totalColumns = 0
+        for _, category in ipairs(categories) do
+            local itemCount = #category.items
+            totalColumns = totalColumns + math.ceil(itemCount / maxItemsPerColumn)
+        end
         
-        for colIndex, category in ipairs(categories) do
-            local colOffset = startOffset + ((colIndex - 1) * columnSpacing)
-            local colX, colY = GetRotatedOffset(coords, 0, colOffset, rotation)
-            local currentZ = headerOffsetZ - 0.3
+        local startOffset = ((totalColumns - 1) / 2) * columnSpacing
+        local currentColumn = 0
+        
+        -- Render each category in order
+        for _, category in ipairs(categories) do
+            local categoryColumns = SplitCategoryIntoColumns(category, maxItemsPerColumn)
             
-            -- Category header
-            Draw3DText(colX, colY, coords.z + currentZ, category.name, 1.2,
-                category.color[1], category.color[2], category.color[3], category.color[4], font)
-            currentZ = currentZ - categorySpacing
-            
-            -- Items
-            for i, item in ipairs(category.items) do
-                local z = coords.z + currentZ - ((i - 1) * itemSpacing)
-                local text = item.price 
-                    and string.format("%s ~g~%s", item.name, item.price)
-                    or item.name
-                local itemColor = item.color or {255, 255, 255, 255}
-                Draw3DText(colX, colY, z, text, 0.9, 
-                    itemColor[1], itemColor[2], itemColor[3], itemColor[4], font)
+            -- Render each wrapped column for this category
+            for _, column in ipairs(categoryColumns) do
+                local colOffset = startOffset - (currentColumn * columnSpacing)
+                local colX, colY = GetRotatedOffset(coords, 0, colOffset, rotation)
+                local currentZ = headerOffsetZ - 0.3
+                
+                -- Category header
+                if column.showHeader then
+                    Draw3DText(colX, colY, coords.z + currentZ, column.name, 1.2,
+                        column.color[1], column.color[2], column.color[3], column.color[4], font)
+                end
+                currentZ = currentZ - categorySpacing
+                
+                -- Items
+                for i, item in ipairs(column.items) do
+                    local z = coords.z + currentZ - ((i - 1) * itemSpacing)
+                    local text = item.price 
+                        and string.format("%s ~g~%s", item.name, item.price)
+                        or item.name
+                    local itemColor = item.color or {255, 255, 255, 255}
+                    Draw3DText(colX, colY, z, text, 0.9, 
+                        itemColor[1], itemColor[2], itemColor[3], itemColor[4], font)
+                end
+                
+                currentColumn = currentColumn + 1
             end
         end
     end
@@ -201,7 +256,7 @@ end)
 exports('RemoveTextDisplay', function(index)
     if Config.TextDisplays[index] then
         table.remove(Config.TextDisplays, index)
-        return true
+        return false
     end
     return false
 end)
